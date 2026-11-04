@@ -29,6 +29,11 @@
         "ACCESS_WIFI_STATE",
         "WAKE_LOCK"
       ]
-    }
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font",
+      "expo-status-bar"
+    ]
   }
 }
