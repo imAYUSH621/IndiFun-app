@@ -20,6 +20,8 @@ import Safety from './pages/Safety.jsx';
 import Verify from './pages/Verify.jsx';
 import Banned from './pages/Banned.jsx';
 import GlobalBanner from './live/GlobalBanner.jsx';
+import DesktopNav from './components/DesktopNav.jsx';
+import DesktopDock from './components/DesktopDock.jsx';
 
 function Guard({ children }) {
   const { token } = useApp();
@@ -30,29 +32,37 @@ function Guard({ children }) {
 
 function Shell() {
   return (
-    <div className="app">
-      <GlobalBanner />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Guard><Home /></Guard>} />
-        <Route path="/live/:id" element={<Guard><Room /></Guard>} />
-        <Route path="/golive" element={<Guard><GoLive /></Guard>} />
-        <Route path="/me" element={<Guard><Me /></Guard>} />
-        <Route path="/me/edit" element={<Guard><EditProfile /></Guard>} />
-        <Route path="/recharge" element={<Guard><Recharge /></Guard>} />
-        <Route path="/store" element={<Guard><Store /></Guard>} />
-        <Route path="/vip" element={<Guard><Store vipFirst /></Guard>} />
-        <Route path="/host" element={<Guard><HostCenter /></Guard>} />
-        <Route path="/agency" element={<Guard><Agency /></Guard>} />
-        <Route path="/messages" element={<Guard><Messages /></Guard>} />
-        <Route path="/chat/:userId" element={<Guard><Chat /></Guard>} />
-        <Route path="/user/:id" element={<Guard><Profile /></Guard>} />
-        <Route path="/rank" element={<Guard><Rank /></Guard>} />
-        <Route path="/safety" element={<Guard><Safety /></Guard>} />
-        <Route path="/verify" element={<Guard><Verify /></Guard>} />
-        <Route path="/banned" element={<Guard><Banned /></Guard>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <div className="desktop-root-container">
+      <DesktopNav />
+      <div className="desktop-stage-layout">
+        <DesktopDock />
+        <main className="mobile-phone-viewport-wrapper">
+          <div className="app">
+            <GlobalBanner />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Guard><Home /></Guard>} />
+              <Route path="/live/:id" element={<Guard><Room /></Guard>} />
+              <Route path="/golive" element={<Guard><GoLive /></Guard>} />
+              <Route path="/me" element={<Guard><Me /></Guard>} />
+              <Route path="/me/edit" element={<Guard><EditProfile /></Guard>} />
+              <Route path="/recharge" element={<Guard><Recharge /></Guard>} />
+              <Route path="/store" element={<Guard><Store /></Guard>} />
+              <Route path="/vip" element={<Guard><Store vipFirst /></Guard>} />
+              <Route path="/host" element={<Guard><HostCenter /></Guard>} />
+              <Route path="/agency" element={<Guard><Agency /></Guard>} />
+              <Route path="/messages" element={<Guard><Messages /></Guard>} />
+              <Route path="/chat/:userId" element={<Guard><Chat /></Guard>} />
+              <Route path="/user/:id" element={<Guard><Profile /></Guard>} />
+              <Route path="/rank" element={<Guard><Rank /></Guard>} />
+              <Route path="/safety" element={<Guard><Safety /></Guard>} />
+              <Route path="/verify" element={<Guard><Verify /></Guard>} />
+              <Route path="/banned" element={<Guard><Banned /></Guard>} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

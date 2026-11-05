@@ -130,14 +130,35 @@ export default function Login() {
     setBusy(false);
   };
 
+  const directDemoLogin = async (role) => {
+    setBusy(true);
+    try {
+      const r = await api('/auth/demo-login', { method: 'POST', body: { role } });
+      login(r.token);
+      nav(loc.state?.from || '/', { replace: true });
+    } catch (err) {
+      toast(err.message || 'Login failed', 'error');
+    }
+    setBusy(false);
+  };
+
   const autofillDemo = (demoPhone) => {
     setCc('IN');
     setPhone(demoPhone);
     setTimeout(() => phoneInputRef.current?.focus(), 100);
   };
 
-  const fillTestOtp = () => {
+  const fillTestOtp = async () => {
     setCode('123456');
+    setBusy(true);
+    try {
+      const r = await api('/auth/otp/verify', { method: 'POST', body: { phone, code: '123456', country: cc } });
+      login(r.token);
+      nav(loc.state?.from || '/', { replace: true });
+    } catch (err) {
+      toast(err.message || 'Verification failed', 'error');
+    }
+    setBusy(false);
   };
 
   return (
@@ -151,7 +172,7 @@ export default function Login() {
           <div className="login-avatar-glow">
             <AnimPlayer src="/anims/heart.json" loop className="login-anim" />
           </div>
-          <h1 className="login-app-title">{config.appName || 'Indi Fun'}</h1>
+          <h1 className="login-app-title">{config.appName || 'Omnistu Live'}</h1>
           <p className="login-tagline">Go live · Make friends · Share gifts</p>
         </div>
 
@@ -160,7 +181,7 @@ export default function Login() {
           {step === 'phone' ? (
             <form onSubmit={send} className="auth-form-content">
               <div className="auth-card-header">
-                <h2>Welcome to Indi Fun</h2>
+                <h2>Welcome to Omnistu Live</h2>
                 <p>Login or create an account with your phone number</p>
               </div>
 
@@ -205,15 +226,29 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Demo autofill shortcuts */}
-              <div className="demo-shortcuts">
-                <span className="demo-label">Quick test:</span>
-                <button type="button" className="demo-chip" onClick={() => autofillDemo('9999990001')}>
-                  Host (9999990001)
-                </button>
-                <button type="button" className="demo-chip" onClick={() => autofillDemo('9999990002')}>
-                  Viewer (9999990002)
-                </button>
+              {/* Demo 1-Click Instant Login */}
+              <div className="demo-shortcuts" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255, 42, 109, 0.05)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 42, 109, 0.15)', marginTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#ff2a6d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>⚡ 1-Click Instant Login (No OTP)</span>
+                  <span style={{ fontSize: '10.5px', color: '#10b981', fontWeight: '600' }}>Active</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('aria')}>
+                    🌟 Aria (Star Host)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('rohan')}>
+                    🎵 Rohan (Live Beats)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('fan')}>
+                    💎 VIP Fan (10K Coins)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('seller')}>
+                    🏢 Coin Distributor
+                  </button>
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+                  Or enter any mobile number. Demo OTP is <b>123456</b>.
+                </div>
               </div>
 
               {/* Terms Checkbox */}
@@ -304,7 +339,7 @@ export default function Login() {
               {/* 1-Tap Test OTP shortcut */}
               <div className="test-otp-helper">
                 <button type="button" className="test-otp-btn" onClick={fillTestOtp}>
-                  ⚡ Fill Test OTP: <b>123456</b>
+                  ⚡ Auto-Fill 123456 & Login
                 </button>
               </div>
 
@@ -319,7 +354,7 @@ export default function Login() {
                     <span className="btn-spinner" /> Verifying…
                   </span>
                 ) : (
-                  'Login to Indi Fun'
+                  'Verify & Login'
                 )}
               </button>
 

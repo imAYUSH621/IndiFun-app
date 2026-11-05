@@ -51,7 +51,7 @@ export default function Home() {
   return (
     <div className="page with-nav">
       <header className="home-head">
-        <div className="brand">{config.appName || 'Indi Fun'}</div>
+        <div className="brand">{config.appName || 'Omnistu Live'}</div>
         <div className="row gap">
           <button className="icon-btn" onClick={() => setSearch((s) => !s)} aria-label="Search"><Icon name="search" size={20} /></button>
         </div>
@@ -91,7 +91,7 @@ export default function Home() {
             <Link key={r.id} to={`/live/${r.id}`} className="room-card">
               <img src={r.cover || r.host.avatar || '/icon.svg'} alt="" loading="lazy" />
               <div className="rc-top">
-                <span className="live-dot">{r.type === 'audio' ? t('partyTag') : t('live')}</span>
+                <span className="live-dot">{(r.type === 'audio' || r.type === 'party') ? t('partyTag') : t('live')}</span>
                 {r.inPk && <span className="pk-tag">PK</span>}
                 <span className="cat-tag">{(CATEGORIES.find((c) => c[0] === r.category) || CATEGORIES[0])[1]} {t(`cat_${r.category}`)}</span>
               </div>
