@@ -18,7 +18,7 @@ export const config = {
   // Live video/audio: 100% Free WebSocket WebRTC (P2P Mesh + Google STUN).
   rtcProvider: process.env.RTC_PROVIDER || 'webrtc',
   // OTP: "dev" accepts code 123456; "msg91" sends a real SMS.
-  otpProvider: process.env.OTP_PROVIDER || 'dev',
+  otpProvider: process.env.OTP_PROVIDER || (process.env.NODE_ENV === 'production' ? 'unconfigured' : 'dev'),
   msg91AuthKey: process.env.MSG91_AUTH_KEY || '',
   msg91TemplateId: process.env.MSG91_TEMPLATE_ID || '',
   // Payments: without Razorpay keys, recharges are credited instantly in dev mode.

@@ -3,6 +3,7 @@ import { useApp } from '../store.jsx';
 import { api } from '../api.js';
 
 export default function DesktopDock() {
+  if (!import.meta.env.DEV) return null;
   const { me, login, user } = useApp();
   const [loggingIn, setLoggingIn] = useState(false);
 

@@ -117,6 +117,7 @@ export default function DesktopNav() {
                 <p className="creds-desc">Wholesale coin transfers directly to user UIDs with real-time settlement.</p>
               </div>
 
+              {import.meta.env.DEV && (<>
               {/* Instant App Roles */}
               <div className="creds-box highlight-box">
                 <div className="creds-box-title">
@@ -151,6 +152,7 @@ export default function DesktopNav() {
                 </div>
                 <p className="creds-desc">Or login via OTP with phone <code>9999990002</code> / OTP <code>123456</code>.</p>
               </div>
+              </>)}
             </div>
           </div>
         </div>
