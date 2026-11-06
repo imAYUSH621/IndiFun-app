@@ -34,6 +34,7 @@ async function normPhone(body) {
 }
 
 r.post('/otp/send', async (req, res) => {
+  if (config.otpProvider === 'unconfigured') throw bad('otp_unconfigured', 'OTP provider is not configured on this server');
   const { phone } = await normPhone(req.body);
   const prev = otps.get(phone);
   if (prev && prev.sentAt > now() - 10e3) throw bad('too_soon', 'Please wait a few seconds before asking again');
@@ -61,8 +62,8 @@ r.post('/otp/verify', async (req, res) => {
   const { phone, c, matchedUser } = await normPhone(req.body);
   const inputCode = String(req.body.code || '').trim();
 
-  // In dev mode, OTP 123456 always succeeds
-  if (config.otpProvider === 'dev' && inputCode === '123456') {
+  // Dev shortcut: OTP 123456 succeeds only outside production (devAllowed) with the dev provider.
+  if (config.devAllowed && config.otpProvider === 'dev' && inputCode === '123456') {
     otps.delete(phone);
   } else {
     const rec = otps.get(phone);

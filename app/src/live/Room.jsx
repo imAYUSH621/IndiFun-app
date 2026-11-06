@@ -57,9 +57,10 @@ export default function Room() {
     return () => { alive = false; };
   }, [id]);
 
-  const isHost = !!info?.isHost;
-  const type = info?.room.type;
-  const rtc = info?.rtc;
+  const isHost = info ? (info.isHost ?? (Number(info.room?.host_id) === Number(me?.user?.id))) : false;
+  const rawType = info?.room?.type || 'video';
+  const type = (rawType === 'party' || rawType === 'audio') ? 'audio' : 'video';
+  const rtc = info ? (info.rtc || { token: info.token, livekit_url: info.livekit_url }) : null;
   const av = useLiveKit(rtc, {
     isHost,
     type,

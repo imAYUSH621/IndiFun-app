@@ -1,3 +1,42 @@
+import React from 'react';
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("Admin Portal ErrorBoundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f172a', color: '#f8fafc', padding: '24px', fontFamily: 'system-ui, sans-serif' }}>
+          <div style={{ maxWidth: '480px', width: '100%', background: '#1e293b', borderRadius: '16px', padding: '32px', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)', border: '1px solid #334155' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛡️</div>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '8px' }}>Admin Session Refreshed</h2>
+            <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '24px' }}>
+              {this.state.error?.message || 'A temporary UI mismatch occurred. Click below to reload the dashboard.'}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button onClick={() => window.location.reload()} style={{ padding: '10px 20px', borderRadius: '8px', background: '#ff2a6d', color: '#fff', border: 'none', fontWeight: '600', cursor: 'pointer' }}>
+                Reload Dashboard
+              </button>
+              <button onClick={() => { localStorage.clear(); window.location.href = '/'; }} style={{ padding: '10px 20px', borderRadius: '8px', background: '#334155', color: '#fff', border: 'none', fontWeight: '600', cursor: 'pointer' }}>
+                Reset Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, NavLink, Route, Routes } from 'react-router-dom';
@@ -30,7 +69,7 @@ function Login({ onLogin }) {
   return (
     <div className="login-page">
       <form className="login-box" onSubmit={submit}>
-        <div className="logo">Indi Fun <span>Admin</span></div>
+        <div className="logo">Omnistu Live <span>Admin</span></div>
         <p className="muted">Admins and agencies sign in here.</p>
         <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoFocus /></label>
         <label>Password<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required /></label>
@@ -48,32 +87,29 @@ const MENU = [
   ['/reports', 'Reports', ['super', 'moderator', 'support']],
   ['/trust', 'Trust & safety', ['super', 'moderator', 'support', 'finance']],
   ['/catalog', 'Gifts & store', ['super', 'finance', 'moderator', 'support']],
-  ['/finance', 'Recharge & payouts', ['super', 'finance']],
-  ['/agencies', 'Agencies', ['super', 'finance', 'moderator', 'support']],
-  ['/countries', 'Countries', ['super', 'finance']],
-  ['/system', 'Settings & admins', ['super']],
+  ['/finance', 'Finance & payouts', ['super', 'finance']],
+  ['/agencies', 'Agencies', ['super', 'finance']],
+  ['/countries', 'Countries', ['super']],
+  ['/system', 'System & audit', ['super']],
 ];
 
 function App() {
   const [s, setS] = useState(getSession());
   if (!s) return <Login onLogin={setS} />;
-  const role = s.admin.role;
   const logout = () => { setSession(null); setS(null); };
+  const role = s?.admin?.role === 'super_admin' ? 'super' : (s?.admin?.role || 'super');
+
   if (role === 'agency') {
     return (
       <div className="layout">
         <aside className="side">
-          <div className="logo">Indi Fun <span>Agency</span></div>
-          <NavLink to="/" end>Dashboard</NavLink>
-          <NavLink to="/hosts">Hosts</NavLink>
-          <NavLink to="/settlements">Commission</NavLink>
-          <div className="side-foot"><b>{s.admin.agency?.name}</b><small>Code {s.admin.agency?.code}</small><button onClick={logout}>Sign out</button></div>
+          <div className="logo">Omnistu Live <span>Agency</span></div>
+          <NavLink to="/" end>My Hosts</NavLink>
+          <div className="side-foot"><b>{s.admin.name}</b><small>Agency</small><button onClick={logout}>Sign out</button></div>
         </aside>
         <main className="main">
           <Routes>
-            <Route path="/" element={<AgencyPanel view="dashboard" />} />
-            <Route path="/hosts" element={<AgencyPanel view="hosts" />} />
-            <Route path="/settlements" element={<AgencyPanel view="settlements" />} />
+            <Route path="/" element={<AgencyPanel agencyId={s.admin.agency_id} />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
@@ -83,7 +119,7 @@ function App() {
   return (
     <div className="layout">
       <aside className="side">
-        <div className="logo">Indi Fun <span>Admin</span></div>
+        <div className="logo">Omnistu Live <span>Admin</span></div>
         {MENU.filter((m) => m[2].includes(role)).map(([to, label]) => <NavLink key={to} to={to} end={to === '/'}>{label}</NavLink>)}
         <div className="side-foot"><b>{s.admin.name}</b><small>{role}</small><button onClick={logout}>Sign out</button></div>
       </aside>
@@ -106,10 +142,12 @@ function App() {
   );
 }
 
+const adminBasename = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin') ? '/admin' : '';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter basename="/admin">
-      <ToastProvider><App /></ToastProvider>
+    <BrowserRouter basename={adminBasename}>
+      <ErrorBoundary><ToastProvider><App /></ToastProvider></ErrorBoundary>
     </BrowserRouter>
   </StrictMode>,
 );

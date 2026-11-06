@@ -42,7 +42,7 @@ export async function api(path, { method = 'GET', body, form } = {}) {
   let data = null;
   try { data = await res.json(); } catch { /* empty */ }
   if (res.status === 401) { setSession(null); window.location.reload(); }
-  if (!res.ok) throw new Error(data?.message || 'Request failed');
+  if (!res.ok) throw new Error(data?.error || data?.message || 'Request failed');
   return data;
 }
 
@@ -122,14 +122,16 @@ export function PageHead({ title, sub, children }) {
 }
 
 // Simple bar chart (no chart library needed).
-export function Bars({ data, valueKey, labelKey, format = fmt, color = 'var(--accent)' }) {
-  const max = Math.max(1, ...data.map((d) => Number(d[valueKey])));
+export function Bars({ data = [], valueKey, labelKey, format = fmt, color = 'var(--accent)' }) {
+  const arr = Array.isArray(data) ? data : [];
+  if (!arr.length) return <div className="muted" style={{ padding: '24px 0', textAlign: 'center' }}>No trend data yet</div>;
+  const max = Math.max(1, ...arr.map((d) => Number(d?.[valueKey] || 0)));
   return (
     <div className="bars">
-      {data.map((d) => (
-        <div key={d[labelKey]} className="bar-col" title={`${d[labelKey]}: ${format(d[valueKey])}`}>
-          <div className="bar" style={{ height: `${(Number(d[valueKey]) / max) * 100}%`, background: color }} />
-          <span>{String(d[labelKey]).slice(5)}</span>
+      {arr.map((d, i) => (
+        <div key={d?.[labelKey] || i} className="bar-col" title={`${d?.[labelKey] || ''}: ${format(d?.[valueKey] || 0)}`}>
+          <div className="bar" style={{ height: `${(Number(d?.[valueKey] || 0) / max) * 100}%`, background: color }} />
+          <span>{String(d?.[labelKey] || '').slice(5, 10)}</span>
         </div>
       ))}
     </div>

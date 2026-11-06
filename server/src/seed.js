@@ -140,6 +140,10 @@ await upsert('banners', 'id', { id: 'b2', title: 'Become a host and earn from ho
 // ---------- admin logins ----------
 // Set ADMIN_EMAIL and ADMIN_PASSWORD in .env for production; the defaults are for local testing only.
 const adminEmail = (process.env.ADMIN_EMAIL || 'admin@liveapp.local').toLowerCase();
+if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+  console.error('ADMIN_PASSWORD must be set explicitly in production');
+  process.exit(1);
+}
 const adminPass = process.env.ADMIN_PASSWORD || 'admin12345';
 const admin = await db.one('SELECT id FROM admin_users WHERE email = ?', [adminEmail]);
 if (!admin) {

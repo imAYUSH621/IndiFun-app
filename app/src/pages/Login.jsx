@@ -39,10 +39,15 @@ export default function Login() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState('phone');
   const [busy, setBusy] = useState(false);
-  const [agree, setAgree] = useState(true);
+  const [agree, setAgree] = useState(false);
   const [showCountryModal, setShowCountryModal] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const [resendSec, setResendSec] = useState(0);
+  const [mode, setMode] = useState('phone');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [isRegister, setIsRegister] = useState(false);
 
   const phoneInputRef = useRef(null);
   const otpInputRef = useRef(null);
@@ -130,14 +135,51 @@ export default function Login() {
     setBusy(false);
   };
 
+  const emailAuth = async (e) => {
+    e?.preventDefault();
+    if (!agree) return toast('Please confirm you are 18+ and accept the terms', 'error');
+    setBusy(true);
+    try {
+      const path = isRegister ? '/auth/register' : '/auth/login';
+      const body = isRegister ? { email, password, name: displayName } : { email, password };
+      const r = await api(path, { method: 'POST', body });
+      login(r.token);
+      nav(isRegister ? '/me/edit?welcome=1' : loc.state?.from || '/', { replace: true });
+    } catch (err) {
+      toast(err.message || 'Login failed', 'error');
+    }
+    setBusy(false);
+  };
+
+  const directDemoLogin = async (role) => {
+    setBusy(true);
+    try {
+      const r = await api('/auth/demo-login', { method: 'POST', body: { role } });
+      login(r.token);
+      nav(loc.state?.from || '/', { replace: true });
+    } catch (err) {
+      toast(err.message || 'Login failed', 'error');
+    }
+    setBusy(false);
+  };
+
   const autofillDemo = (demoPhone) => {
     setCc('IN');
     setPhone(demoPhone);
     setTimeout(() => phoneInputRef.current?.focus(), 100);
   };
 
-  const fillTestOtp = () => {
+  const fillTestOtp = async () => {
     setCode('123456');
+    setBusy(true);
+    try {
+      const r = await api('/auth/otp/verify', { method: 'POST', body: { phone, code: '123456', country: cc } });
+      login(r.token);
+      nav(loc.state?.from || '/', { replace: true });
+    } catch (err) {
+      toast(err.message || 'Verification failed', 'error');
+    }
+    setBusy(false);
   };
 
   return (
@@ -151,20 +193,81 @@ export default function Login() {
           <div className="login-avatar-glow">
             <AnimPlayer src="/anims/heart.json" loop className="login-anim" />
           </div>
-          <h1 className="login-app-title">{config.appName || 'Indi Fun'}</h1>
+          <h1 className="login-app-title">{config.appName || 'Omnistu Live'}</h1>
           <p className="login-tagline">Go live · Make friends · Share gifts</p>
         </div>
 
         {/* Auth Card */}
         <div className="login-card-mika">
           {step === 'phone' ? (
-            <form onSubmit={send} className="auth-form-content">
+            <form onSubmit={mode === 'email' ? emailAuth : send} className="auth-form-content">
               <div className="auth-card-header">
-                <h2>Welcome to Indi Fun</h2>
-                <p>Login or create an account with your phone number</p>
+                <h2>Welcome to Omnistu Live</h2>
+                <p>{mode === 'email' ? (isRegister ? 'Create your account with email' : 'Sign in with your email') : 'Login or create an account with your phone number'}</p>
               </div>
 
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 4 }}>
+                <button type="button" className="edit-num-link" onClick={() => setMode(mode === 'phone' ? 'email' : 'phone')}>
+                  {mode === 'phone' ? 'Use email instead' : 'Use phone instead'}
+                </button>
+              </div>
+
+              {mode === 'email' && (
+                <>
+                  {isRegister && (
+                    <div className="auth-field-group">
+                      <label htmlFor="name-input-field">Display name</label>
+                      <input
+                        id="name-input-field"
+                        type="text"
+                        maxLength={40}
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        placeholder="Your name"
+                        autoComplete="name"
+                        className="mika-phone-text-input"
+                        style={{ width: '100%' }}
+                      />
+                    </div>
+                  )}
+                  <div className="auth-field-group">
+                    <label htmlFor="email-input-field">Email</label>
+                    <input
+                      id="email-input-field"
+                      type="email"
+                      maxLength={120}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                      className="mika-phone-text-input"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="auth-field-group">
+                    <label htmlFor="password-input-field">Password</label>
+                    <input
+                      id="password-input-field"
+                      type="password"
+                      maxLength={72}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={isRegister ? 'At least 6 characters' : 'Your password'}
+                      autoComplete={isRegister ? 'new-password' : 'current-password'}
+                      className="mika-phone-text-input"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 8px' }}>
+                    <button type="button" className="edit-num-link" onClick={() => setIsRegister(!isRegister)}>
+                      {isRegister ? 'Already have an account? Sign in' : 'New to Omnistu Live? Create an account'}
+                    </button>
+                  </div>
+                </>
+              )}
+
               {/* Phone Input with Country Code Picker */}
+              {mode === 'phone' && (
               <div className="auth-field-group">
                 <label htmlFor="phone-input-field">Phone number or 8-digit ID</label>
                 <div className="mika-phone-wrapper">
@@ -204,17 +307,34 @@ export default function Login() {
                   )}
                 </div>
               </div>
+              )}
 
-              {/* Demo autofill shortcuts */}
-              <div className="demo-shortcuts">
-                <span className="demo-label">Quick test:</span>
-                <button type="button" className="demo-chip" onClick={() => autofillDemo('9999990001')}>
-                  Host (9999990001)
-                </button>
-                <button type="button" className="demo-chip" onClick={() => autofillDemo('9999990002')}>
-                  Viewer (9999990002)
-                </button>
+              {import.meta.env.DEV && (<>
+              {/* Demo 1-Click Instant Login */}
+              <div className="demo-shortcuts" style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255, 42, 109, 0.05)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255, 42, 109, 0.15)', marginTop: '8px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#ff2a6d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>⚡ 1-Click Instant Login (No OTP)</span>
+                  <span style={{ fontSize: '10.5px', color: '#10b981', fontWeight: '600' }}>Active</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('aria')}>
+                    🌟 Aria (Star Host)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('rohan')}>
+                    🎵 Rohan (Live Beats)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('fan')}>
+                    💎 VIP Fan (10K Coins)
+                  </button>
+                  <button type="button" className="demo-chip" style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '6px 8px', borderRadius: '8px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }} onClick={() => directDemoLogin('seller')}>
+                    🏢 Coin Distributor
+                  </button>
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', textAlign: 'center' }}>
+                  Or enter any mobile number. Demo OTP is <b>123456</b>.
+                </div>
               </div>
+              </>)}
 
               {/* Terms Checkbox */}
               <label className="mika-check-label">
@@ -233,14 +353,14 @@ export default function Login() {
               <button
                 type="submit"
                 className="btn primary block mika-main-btn"
-                disabled={busy || !valid}
+                disabled={busy || (mode === 'email' ? !(email.includes('@') && password.length >= 6) : !valid)}
               >
                 {busy ? (
                   <span className="btn-loading">
-                    <span className="btn-spinner" /> Sending OTP…
+                    <span className="btn-spinner" /> {mode === 'email' ? 'Please wait…' : 'Sending OTP…'}
                   </span>
                 ) : (
-                  'Get OTP'
+                  mode === 'email' ? (isRegister ? 'Create account' : 'Sign in') : 'Get OTP'
                 )}
               </button>
             </form>
@@ -302,11 +422,13 @@ export default function Login() {
               />
 
               {/* 1-Tap Test OTP shortcut */}
+              {import.meta.env.DEV && (
               <div className="test-otp-helper">
                 <button type="button" className="test-otp-btn" onClick={fillTestOtp}>
-                  ⚡ Fill Test OTP: <b>123456</b>
+                  ⚡ Auto-Fill 123456 & Login
                 </button>
               </div>
+              )}
 
               {/* Verify Button */}
               <button
@@ -319,7 +441,7 @@ export default function Login() {
                     <span className="btn-spinner" /> Verifying…
                   </span>
                 ) : (
-                  'Login to Indi Fun'
+                  'Verify & Login'
                 )}
               </button>
 
@@ -444,10 +566,7 @@ export default function Login() {
 // Country code -> flag emoji (regional indicator letters)
 export const flag = (cc) => {
   const code = String(cc || '').toUpperCase();
-  if (code.length !== 2) return '🌐';
-  try {
-    return code.replace(/./g, (ch) => String.fromCodePoint(127397 + ch.charCodeAt(0)));
-  } catch {
-    return '🌐';
-  }
+  // Regional-indicator emoji flags render as empty boxes on systems without an
+  // emoji font (notably headless/Linux); the ISO code text always renders.
+  return /^[A-Z]{2}$/.test(code) ? code : '🌐';
 };

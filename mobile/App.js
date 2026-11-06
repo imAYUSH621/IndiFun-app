@@ -14,7 +14,7 @@ import { WebView } from 'react-native-webview';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-const DEFAULT_SERVER_URL = 'https://indifun-app.onrender.com';
+const DEFAULT_SERVER_URL = 'https://liveapp-server-ksvy.onrender.com';
 const CHROME_USER_AGENT =
   'Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36';
 
